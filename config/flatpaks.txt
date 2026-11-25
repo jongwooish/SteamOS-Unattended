@@ -1,0 +1,6 @@
+# 설치할 Flatpak 앱 ID 목록 (한 줄에 하나, # 뒤는 주석)
+# 앱 ID는 https://flathub.org 에서 앱 페이지 주소 끝부분이에요.
+
+com.github.tchx84.Flatseal   # Flatpak 권한 관리
+org.videolan.VLC             # 동영상 플레이어
+com.discordapp.Discord       # 메신저
