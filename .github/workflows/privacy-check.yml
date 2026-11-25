@@ -1,0 +1,62 @@
+name: Privacy check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  privacy:
+    name: No keys, tokens or local paths
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Forbidden file names
+        run: |
+          bad=$(git ls-files | grep -E -i '(^|/)(id_rsa|id_ed25519|id_ecdsa)(\.pub)?$|\.(pem|key|p12|pfx|ppk|kdbx)$|(^|/)\.env$|credentials\.json$' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::Key or credential files are tracked:"; echo "$bad"; exit 1
+          fi
+          echo "OK: no key or credential files"
+
+      - name: Private key blocks and tokens
+        run: |
+          pattern='-----BEGIN ([A-Z]+ )?PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{60,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}'
+          if git grep -I -n -E -e "$pattern" -- ':!.github/workflows/privacy-check.yml'; then
+            echo "::error::Private key or token found"; exit 1
+          fi
+          echo "OK: no private keys or tokens"
+
+      - name: Windows user paths
+        run: |
+          if git grep -I -n -i -E 'C:\\Users\\|C:/Users/' -- ':!.github/workflows/privacy-check.yml'; then
+            echo "::error::Local Windows user path found (use \$env:USERPROFILE instead)"; exit 1
+          fi
+          echo "OK: no local user paths"
+
+  secrets:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  syntax:
+    name: Shell syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bash -n
+        run: |
+          for f in install.sh lib/*.sh modules/*.sh; do
+            bash -n "$f" && echo "ok  $f"
+          done
