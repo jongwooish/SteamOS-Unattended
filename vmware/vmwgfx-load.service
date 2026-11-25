@@ -1,0 +1,17 @@
+[Unit]
+Description=Load custom vmwgfx driver for VMware
+DefaultDependencies=no
+ConditionVirtualization=vmware
+RequiresMountsFor=/home/vmwgfx
+After=local-fs.target
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/modprobe ttm
+ExecStart=/usr/bin/modprobe drm_ttm_helper
+ExecStart=-/usr/bin/insmod /home/vmwgfx/vmwgfx.ko
+
+[Install]
+WantedBy=multi-user.target
