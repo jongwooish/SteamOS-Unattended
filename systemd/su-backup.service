@@ -1,0 +1,8 @@
+[Unit]
+Description=steamos-unattended: home 설정 백업
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/su-backup
+Nice=10
+IOSchedulingClass=idle

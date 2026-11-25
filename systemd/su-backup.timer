@@ -1,0 +1,10 @@
+[Unit]
+Description=steamos-unattended: 매일 백업
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=15min
+
+[Install]
+WantedBy=timers.target
