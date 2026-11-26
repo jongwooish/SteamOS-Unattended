@@ -20,7 +20,8 @@ curl -fsSL https://raw.githubusercontent.com/jongwooish/SteamOS-Unattended/main/
 
 ## Índice
 
-- [Por qué](#por-qué)
+- [Qué problema resuelve](#qué-problema-resuelve)
+- [Para jugadores de Steam Deck](#para-jugadores-de-steam-deck)
 - [Principios](#principios)
 - [Módulos](#módulos)
 - [Arquitectura](#arquitectura)
@@ -35,11 +36,41 @@ curl -fsSL https://raw.githubusercontent.com/jongwooish/SteamOS-Unattended/main/
 
 ---
 
-## Por qué
+## Qué problema resuelve
 
-SteamOS mantiene su sistema en **solo lectura** y lo sustituye por una **imagen completamente nueva** en cada actualización. Lo instalado con `pacman` y la mayoría de ajustes del sistema desaparecen tras una actualización, y después de un restablecimiento hay que rehacer a mano las aplicaciones, la entrada en hangul y las herramientas de desarrollo.
+En SteamOS hay dos tipos muy distintos de "mis cambios", y una actualización del sistema los trata de forma diferente.
 
-SteamOS-Unattended elimina ese ciclo. Instala aplicaciones, ajustes y contenedores en **el único lugar que las actualizaciones nunca tocan (`/home`)**, y lo que se instala se declara en archivos de configuración sencillos.
+| | Tu cuenta: juegos y ajustes personales | Cambios hechos al propio sistema con `sudo` |
+| --- | --- | --- |
+| Ejemplos | Juegos y partidas guardadas de Steam, apps de Discover, fondo de pantalla, atajos, configuración del mando | Programas instalados con `pacman`, servicios del sistema, controladores, cambios en `/etc` |
+| Se guarda en | `/home` | Zona del sistema (`/usr`, casi todo `/etc`) |
+| Tras una actualización | **Se conserva** | **Se borra** — lo sustituye la nueva imagen de Valve |
+| Tras un restablecimiento | Se borra | Se borra |
+
+> [!NOTE]
+> Regla práctica: **lo que necesitó la contraseña de sudo suele desaparecer en la siguiente actualización.** Los juegos y partidas no son el problema: están en `/home` y sobreviven a las actualizaciones.
+
+SteamOS-Unattended resuelve la columna de la derecha de dos maneras:
+
+1. **Sobrevivir a las actualizaciones** — nunca modifica la zona del sistema. Las apps se instalan como Flatpak de usuario, las herramientas de línea de comandos en contenedores dentro de `/home`, y los pocos archivos de `/etc` realmente necesarios se añaden a la propia lista de conservación de SteamOS.
+2. **Reconstruir tras un restablecimiento** — toda la configuración está declarada en archivos, así que en una Deck borrada o nueva un solo comando recupera el mismo entorno.
+
+## Para jugadores de Steam Deck
+
+**No** lo necesitas si solo juegas en el modo juego. Es para quien también usa el **modo escritorio** y está cansado de volver a configurarlo.
+
+| Después de ejecutarlo | Qué notas |
+| --- | --- |
+| Modo juego | Nada cambia: juegos, partidas y configuración del mando intactos |
+| Apps del modo escritorio | Flatseal, VLC y Discord aparecen en el menú (la lista se puede editar) |
+| Escritura en coreano | Ctrl+Space cambia a hangul en el modo escritorio |
+| Herramientas de terminal | Las cajas de herramientas `devbox` y `netkit`; ignóralas si nunca abres una terminal |
+| Copia de seguridad | Tus ajustes se copian cada noche en `~/Backups` |
+| Tras una actualización de SteamOS | Todo lo anterior sigue ahí |
+| Tras un restablecimiento | Vuelve a pegar la misma línea |
+
+> [!IMPORTANT]
+> Este proyecto **no** hace copia de los juegos ni de las partidas guardadas. Los juegos ya sobreviven a las actualizaciones y las partidas las cubre Steam Cloud.
 
 ## Principios
 
