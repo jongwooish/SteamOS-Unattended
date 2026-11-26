@@ -20,7 +20,8 @@ curl -fsSL https://raw.githubusercontent.com/jongwooish/SteamOS-Unattended/main/
 
 ## Contents
 
-- [Why](#why)
+- [What problem it solves](#what-problem-it-solves)
+- [For Steam Deck players](#for-steam-deck-players)
 - [Principles](#principles)
 - [Modules](#modules)
 - [Architecture](#architecture)
@@ -35,11 +36,41 @@ curl -fsSL https://raw.githubusercontent.com/jongwooish/SteamOS-Unattended/main/
 
 ---
 
-## Why
+## What problem it solves
 
-SteamOS keeps its system **read-only** and replaces it with a **whole new image** on every OS update. Anything installed with `pacman` and most system settings vanish after one update, and after a factory reset you redo apps, Hangul input and dev tools by hand.
+On SteamOS there are two very different kinds of "my changes", and an OS update treats them differently.
 
-SteamOS-Unattended removes that loop. It installs apps, settings and containers into **the one place updates never touch (`/home`)**, and you declare what to install in plain config files.
+| | Your account: games and personal settings | Changes made to the OS itself with `sudo` |
+| --- | --- | --- |
+| Examples | Steam games and saves, apps from Discover, wallpaper, shortcuts, controller layouts | Programs installed with `pacman`, system services, drivers, edits under `/etc` |
+| Stored in | `/home` | System area (`/usr`, most of `/etc`) |
+| After an OS update | **Kept** | **Wiped** — replaced by Valve's new image |
+| After a factory reset | Wiped | Wiped |
+
+> [!NOTE]
+> Rule of thumb: **anything you needed the sudo password for is usually gone after the next update.** Games and saves are not the problem — they live in `/home` and survive updates.
+
+SteamOS-Unattended solves the right-hand column in two ways:
+
+1. **Survive updates** — it never modifies the system area. Apps go in as per-user Flatpaks, command-line tools go into containers in `/home`, and the few `/etc` files that are really needed are put on SteamOS's own keep list.
+2. **Rebuild after a reset** — the whole setup is declared in config files, so on a wiped or brand-new Deck one command brings the same environment back.
+
+## For Steam Deck players
+
+You do **not** need this if you only play in Game Mode. It is for people who also use **Desktop Mode** and are tired of setting it up again.
+
+| After running it | What you notice |
+| --- | --- |
+| Game Mode | Nothing changes — games, saves and controller layouts are untouched |
+| Desktop Mode apps | Flatseal, VLC and Discord appear in the app menu (edit the list freely) |
+| Korean typing | Ctrl+Space switches to Hangul in Desktop Mode |
+| Command-line tools | `devbox` and `netkit` toolboxes — ignore them if you never open a terminal |
+| Backup | Your settings are backed up to `~/Backups` every night |
+| After a SteamOS update | Everything above is still there |
+| After a factory reset | Paste the same one line again |
+
+> [!IMPORTANT]
+> This project does **not** back up games or save files. Game files already survive updates, and saves are covered by Steam Cloud.
 
 ## Principles
 
